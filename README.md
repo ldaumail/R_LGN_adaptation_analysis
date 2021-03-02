@@ -1,5 +1,5 @@
 # R_LGN_adaptation_analysis
-
+### Statistical analyses of the rapid visual adaptation manuscript were performed on R
 ## This repository hosts the following analyses:
 ## -Adaptation analysis:
 ## *LMMs fit of the peaks and troughs (individual_channels_analysis_origpeaks_KRpvalcorr.R)

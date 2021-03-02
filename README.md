@@ -3,7 +3,7 @@
 This repository hosts the following analyses:
 -Adaptation analysis:
 *LMMs fit of the peaks and troughs
-*Effect size
+*Effect size (cohens_d_plots.R)
 *plots
 -Binocular interaction
 *LMs fit of linear trends/anovas and effect sizes

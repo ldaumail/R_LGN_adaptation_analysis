@@ -1,10 +1,12 @@
 library(R.matlab)
 library(car)
-source('C:/Users/daumail/Documents/R/useful_functions/rowMaxs.R')
-allData = readMat("C:/Users/daumail/Documents/LGN_data/single_units/binocular_adaptation/all_units/all_orig_bs_zscore_trials.mat")
+source('C:/Users/daumail/OneDrive - Vanderbilt/Documents/R/useful_functions/rowMaxs.R')
+allData = readMat("C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data/single_units/binocular_adaptation/all_units/all_orig_bs_zscore_trials.mat")
 
 pvals <- array(0, c(length(allData$peak.aligned.trials),6))
 r2 <- array(0, c(length(allData$peak.aligned.trials),3))
+
+
 
 for(i in 1:length(allData$peak.aligned.trials)){
   #dim 1 = cell number
@@ -49,9 +51,9 @@ bumps_df.split <- bumps_df.split[,c("Condition","Pk1","Pk2","Pk3","Pk4")]
 
 ##Omnibus test
 bumps_df.split$Condition <- factor(bumps_df.split$Condition)
-attach(bumps_df.split)
+#attach(bumps_df.split)
 
-mult.fit<-lm(as.matrix(bumps_df.split[,2:5])~Condition)
+mult.fit<-lm(as.matrix(bumps_df.split[,2:5])~bumps_df.split$Condition)
 library(car)
 
 measures<-as.factor(1:4)
@@ -64,7 +66,7 @@ Average<-rowMeans(bumps_df.split[,2:5])
 #tapply(Average,Condition,FUN = mean)
 
 ##contrast in the condition MAIN EFFECT
-Average.aov<-aov(Average~Condition)
+Average.aov<-aov(Average~bumps_df.split$Condition)
 conditionMain <- summary(Average.aov)
 pvals[i,1] <- conditionMain[[1]][1,5]
 #TukeyHSD(Average.aov) we don't need it here as we only have two groups to compare (monocular/binocular)
@@ -84,20 +86,29 @@ library(gmodels)
 
 ##Within subject effect
 
-#MAIN EFFECT of Linear Trend
+#1.First part of the analysis: test linear trend and interaction with condition 
+#MAIN EFFECT of Linear Trend (just to make sure that most linear trends that show interaction are significant linear trends)
 linear<- -3*bumps_df.split[,2]-bumps_df.split[,3]+bumps_df.split[,4]+3*bumps_df.split[,5]
+#Condition <- factor(Condition, levels = c("Monocular","Binocular"))
 options(contrasts = c("contr.sum","contr.poly"))
-peakMain <- coef(summary(lm(linear~Condition)))
+peakMain <- coef(summary(lm(linear~bumps_df.split$Condition)))
 #tapply(linear,Condition,FUN=mean)
 #PK main effect
 pvals[i,2] <- peakMain[1,4]
 
-#Is the linear trend enough to explain the group difference?
+##Interaction contrast (most important test of the script)
+aov.Interaction <- aov(linear~bumps_df.split$Condition)
+pvals[i,6] <- summary(aov.Interaction)[[1]][1,5]
+#TukeyHSD(aov(linear~Condition))
+
+#2. Second part of the analysis: How much does the linear trend explain the variance together with quadratic and cubic trends?
 library(reshape2)
 long_dat <- melt(bumps_df.split, id.var=c('Condition'), variable.name = "Peak", value.name = "Response")
+long_dat.mono <- long_dat[long_dat$Condition == 'Monocular',]
+long_dat.bino <- long_dat[long_dat$Condition == 'Binocular',]
 
 contrasts(long_dat$Peak) <- contr.poly(4)
-long_datX <- model.matrix(~1+Peak, data = long_dat)
+long_datX <- model.matrix(~1+long_dat$Peak, data = long_dat)
 long_dat[,c("cLin","cQuad","cCub")] <- long_datX[,2:4]
 regressX <-lm(Response~1+cLin+cQuad+cCub, data = long_dat)
 aovModel <-anova(regressX)
@@ -108,13 +119,10 @@ pvals[i,5] <-aovModel[3,"Pr(>F)"]
 SumSq <- aovModel[1:3,"Sum Sq"]
 names(SumSq) <- c("cLinr","cQuad","cCub")
 r2[i,] <- round(SumSq / sum(SumSq),2)
-##Interaction contrast
-
-aov.Interaction <- aov(linear~Condition)
-pvals[i,6] <- summary(aov.Interaction)[[1]][1,5]
 
 
-#TukeyHSD(aov(linear~Condition)) 
+
+ 
 
 ##simple effect of Pk
 #monocular.fit<-lm(as.matrix(bumps_df.split[Condition=="Monocular",2:5])~1)

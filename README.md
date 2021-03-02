@@ -7,4 +7,4 @@ This repository hosts the following analyses:
 *plots
 -Binocular interaction
 *LMs fit of linear trends/anovas and effect sizes
-*Other attempts to fit better models to the data to test for interaction
+*Other attempts to fit better models to the data to test for interaction (all_Trends_and_monovsBino_interaction.R)

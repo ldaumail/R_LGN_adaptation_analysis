@@ -1,7 +1,7 @@
 # R_LGN_adaptation_analysis
 
 # This repository hosts the following analyses:
-# -Adaptation analysis:
+## -Adaptation analysis:
 # *LMMs fit of the peaks and troughs 
 # *Some t-tests(dependent_t_test_normality_test.R)
 # *Bootstrap analysis (bootstrap_anal.R)

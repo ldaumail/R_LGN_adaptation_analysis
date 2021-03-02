@@ -3,7 +3,7 @@
 This repository hosts the following analyses:
 -Adaptation analysis:
 *LMMs fit of the peaks and troughs 
-
+*Some t-tests and boootstrap analyses (dependent_t_test_normality_test.R)
 *Effect size (cohens_d_plots.R)
 *plots
 -Binocular interaction

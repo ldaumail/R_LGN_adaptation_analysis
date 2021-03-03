@@ -3,6 +3,7 @@
 ## This repository hosts the following analyses:
 ## -Adaptation analysis:
 ## *LMMs fit of the peaks and troughs (individual_channels_analysis_origpeaks_KRpvalcorr.R)
+             -data location:-
 ## *Some t-tests(dependent_t_test_normality_test.R)
 ## *Bootstrap analysis (bootstrap_anal.R)
 ## *Effect size (cohens_d_plots.R)

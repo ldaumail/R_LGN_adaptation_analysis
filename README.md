@@ -11,4 +11,4 @@
 ## -Binocular interaction analysis:
 ## *LMs fit of linear trends/anovas and effect sizes (contrast_linearTrend_and_monovsBino_interaction.R)
               -data location:- "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data/single_units/binocular_adaptation/all_units/all_orig_bs_zscore_trials.mat"
-## *Other attempts to fit better models to the data to test for interaction (all_Trends_and_monovsBino_interaction.R)
+## *Other attempts to fit better models to the data to test for interaction (all_Trends_and_monovsBino_interaction.R,contrast_Pk1vsPk4_and_Mono_vs_Bino_interaction.R)

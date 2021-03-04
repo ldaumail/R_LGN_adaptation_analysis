@@ -5,9 +5,13 @@
 ## *LMMs fit of the peaks and troughs (individual_channels_analysis_origpeaks_KRpvalcorr.R)
              -data location:- "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/su_peaks_03032020_corrected/orig_peak_values/*.mat"
 ## *Some t-tests(dependent_t_test_normality_test.R)
+             -data location:- "/Users/loicdaumail/Documents/Research_MacBook/Maier_lab/adaptation_LGN_project/R/all_raw_mean_data_peaks.mat"
 ## *Bootstrap analysis (bootstrap_anal.R)
+             -data location:- "/Users/loicdaumail/Documents/Research_MacBook/Maier_lab/adaptation_LGN_project/R/all_raw_mean_data_peaks.mat"
 ## *Effect size (cohens_d_plots.R)
+             -data location:-"/Users/loicdaumail/Documents/Research_MacBook/Maier_lab/adaptation_LGN_project/R/all_raw_mean_data_peaks.mat"
 ## *plots(violin_plots_edited.R)
+             -data location:-"/Users/loicdaumail/Documents/Research_MacBook/Maier_lab/adaptation_LGN_project/R/all_norm_mean_data_peaks.mat"
 ## -Binocular interaction analysis:
 ## *LMs fit of linear trends/anovas and effect sizes (contrast_linearTrend_and_monovsBino_interaction.R)
               -data location:- "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data/single_units/binocular_adaptation/all_units/all_orig_bs_zscore_trials.mat"

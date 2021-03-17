@@ -5,7 +5,7 @@ allData = readMat("C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data/sin
 
 pvals <- array(0, c(length(allData$peak.aligned.trials),6))
 r2 <- array(0, c(length(allData$peak.aligned.trials),3))
-
+r2Linear <- array(0, c(length(allData$peak.aligned.trials),3,2))
 
 
 for(i in 1:length(allData$peak.aligned.trials)){
@@ -107,22 +107,31 @@ long_dat <- melt(bumps_df.split, id.var=c('Condition'), variable.name = "Peak", 
 long_dat.mono <- long_dat[long_dat$Condition == 'Monocular',]
 long_dat.bino <- long_dat[long_dat$Condition == 'Binocular',]
 
-contrasts(long_dat$Peak) <- contr.poly(4)
-long_datX <- model.matrix(~1+long_dat$Peak, data = long_dat)
-long_dat[,c("cLin","cQuad","cCub")] <- long_datX[,2:4]
-regressX <-lm(Response~1+cLin+cQuad+cCub, data = long_dat)
+#variance explained in the monocular condition
+contrasts(long_dat.mono$Peak) <- contr.poly(4)
+long_datX <- model.matrix(~1+long_dat.mono$Peak, data = long_dat.mono)
+long_dat.mono[,c("cLin","cQuad","cCub")] <- long_datX[,2:4]
+regressX <-lm(Response~1+cLin+cQuad+cCub, data = long_dat.mono)
 aovModel <-anova(regressX)
+#to store the pvalues (might need some adjustments if you also wanna save binocular pvalues)
 pvals[i,3] <-aovModel[1,"Pr(>F)"]
 pvals[i,4] <-aovModel[2,"Pr(>F)"]
 pvals[i,5] <-aovModel[3,"Pr(>F)"]
 
 SumSq <- aovModel[1:3,"Sum Sq"]
 names(SumSq) <- c("cLinr","cQuad","cCub")
-r2[i,] <- round(SumSq / sum(SumSq),2)
+r2Linear[i,1:3,1] <- round(SumSq / sum(SumSq),2)
 
+#variance explained in the binocular condition
+contrasts(long_dat.bino$Peak) <- contr.poly(4)
+long_datX <- model.matrix(~1+long_dat.bino$Peak, data = long_dat.bino)
+long_dat.bino[,c("cLin","cQuad","cCub")] <- long_datX[,2:4]
+regressX <-lm(Response~1+cLin+cQuad+cCub, data = long_dat.bino)
+aovModel <-anova(regressX)
 
-
- 
+SumSq <- aovModel[1:3,"Sum Sq"]
+names(SumSq) <- c("cLinr","cQuad","cCub")
+r2Linear[i,1:3,2] <- round(SumSq / sum(SumSq),2)
 
 ##simple effect of Pk
 #monocular.fit<-lm(as.matrix(bumps_df.split[Condition=="Monocular",2:5])~1)
@@ -156,5 +165,5 @@ colnames(pvals_df) = c("MainCondition","MainTrend","Lin","Quad","Cub","Interacti
 filename <- paste("C:/Users/daumail/Documents/LGN_data/single_units/binocular_adaptation/all_units/mixedmodel_pvals_anova_linearTrend", ".csv", sep = "")
 write.csv(pvals_df, file = filename)
 
-filename <- paste("C:/Users/daumail/Documents/LGN_data/single_units/binocular_adaptation/all_units/mixedmodel_r2_anova_linearTrend", ".csv", sep = "")
-write.csv(r2, file = filename)
+filename <- paste("C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data/single_units/binocular_adaptation/all_units/r2_mono_bino_anova_linearTrend", ".csv", sep = "")
+write.csv(r2Linear, file = filename)

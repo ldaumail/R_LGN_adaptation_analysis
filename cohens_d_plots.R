@@ -6,6 +6,7 @@ peaks =bumps_data[["peak.vals"]]
 #file_names contains both the filenames and the layer
 file_names_data <- read.csv("filenames_layers.csv", header = TRUE,sep = ',', na.strings="")
 
+#pvalues of adaptation of peak1 vs peak4
 pvalues_data <- read.csv("lmer_results_orig_03032020_corrected.csv",header = TRUE,sep = ',', na.strings="")
 
 effectsize<-  array(NaN, c(length(file_names_data[[1]])))
@@ -48,25 +49,25 @@ library(reshape2)
 library(ggplot2)
 
 ## all cell classes effect sizes
-mcohen = org_data.filt$effectsize[org_data.filt$layer=="M"]
-pcohen = org_data.filt$effectsize[org_data.filt$layer=="P"]
-kcohen = org_data.filt$effectsize[org_data.filt$layer=="K"]
+mcohen = org_data.filt$Cohen.s.D[org_data.filt$layer=="M"]
+pcohen = org_data.filt$Cohen.s.D[org_data.filt$layer=="P"]
+kcohen = org_data.filt$Cohen.s.D[org_data.filt$layer=="K"]
 
 cohen_dat <- c(mcohen,pcohen,kcohen)
 
 ##percent change
-mpeak1 = org_data.filt$peak1[org_data.filt$layer=="M"]
-mpeak4 = org_data.filt$peak4[org_data.filt$layer=="M"]
+mpeak1 = org_data.filt$Peak1[org_data.filt$layer=="M"]
+mpeak4 = org_data.filt$Peak4[org_data.filt$layer=="M"]
 m_percent = -100*(mpeak1 - mpeak4)/mpeak1
 
 
-ppeak1 = org_data.filt$peak1[org_data.filt$layer=="P"]
-ppeak4 = org_data.filt$peak4[org_data.filt$layer=="P"]
+ppeak1 = org_data.filt$Peak1[org_data.filt$layer=="P"]
+ppeak4 = org_data.filt$Peak4[org_data.filt$layer=="P"]
 p_percent = -100*(ppeak1 - ppeak4)/ppeak1
 
 
-kpeak1 = org_data.filt$peak1[org_data.filt$layer=="K"]
-kpeak4 = org_data.filt$peak4[org_data.filt$layer=="K"]
+kpeak1 = org_data.filt$Peak1[org_data.filt$layer=="K"]
+kpeak4 = org_data.filt$Peak4[org_data.filt$layer=="K"]
 k_percent = -100*(kpeak1 - kpeak4)/kpeak1
 
 # convert from wide to long

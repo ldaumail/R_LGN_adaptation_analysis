@@ -167,3 +167,50 @@ write.csv(pvals_df, file = filename)
 
 filename <- paste("C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data/single_units/binocular_adaptation/all_units/r2_mono_bino_anova_linearTrend", ".csv", sep = "")
 write.csv(r2Linear, file = filename)
+
+filename <- paste("C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data/single_units/binocular_adaptation/all_units/r2_mono_bino_anova_linearTrend", ".mat", sep = "")
+writeMat(filename, r2 = r2Linear)
+
+## Plot the proportion of variance explained
+
+#1)Load data
+filename <- paste("C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data/single_units/binocular_adaptation/all_units/r2_mono_bino_anova_linearTrend", ".mat", sep = "")
+savedR2 <- readMat(filename)
+
+#Plot R2 distributions
+library("ggpubr")
+data <- array(as.numeric(unlist(savedR2)), dim=c(46, 3, 2)) #convert list into array
+colnames(data) = c("Lin", "Quad", "Cub") #name columns
+row.names(data) =  paste("Unit", 1:nrow(data), sep="") #name rows
+dimnames(data)[[3]] <- c("Monocular", "Binocular") #name third dimension elements
+names(dimnames(data)) <-c("Unit","Trend", "Condition") #name dimensions
+
+library(reshape2)
+df <-melt(data, varnames = names(dimnames(data)),value.name = "ralerting")
+#print(df)
+
+ggbarplot(df, "Condition", "ralerting",
+  fill = "Trend", color = "Trend", palette = "Paired",
+  add = c("mean_se"),
+  label = FALSE,
+  position = position_dodge(0.9))+
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 15, face = "bold", hjust=0.5),
+    axis.title.x = element_text(color = "black", size = 13),
+    axis.title.y = element_text(color = "black", size = 13),
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.text    = element_text(size  = 9),
+    axis.line = element_line(colour = "black", size = 1) 
+  )+
+labs(
+  title = "Mean proportion of variance explained \n by each regressed trend",
+  x = "Condition",
+  y = expression("r"["alerting"]))
+library(ggplot2)
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data/single_units/binocular_adaptation/plots/trends_variance_explained.svg")
+
+
+

@@ -12,7 +12,7 @@ peak1<- t(t(peaks[1,]))
 peak4<- t(t(peaks[4,]))
 
 percentch = -100*(peak1 - peak4)/peak1
-pdiff = peak1-peak4
+pdiff = peak4-peak1
 
 channel_idx = t(t(rep(1:71, times =1)))
 
@@ -45,11 +45,11 @@ kdf = data.frame("Peak1"=kpeak1, "Peak4"=kpeak4)
 kdf.long <- kdf %>%
   gather(key = "Peak", value = "Activity", Peak1, Peak4)
 
-t.test(mpeak4, mpeak1, paired = TRUE, alternative = "two.sided")
-t.test(ppeak4, ppeak1, paired = TRUE, alternative = "two.sided")
-t.test(kpeak4, kpeak1, paired = TRUE, alternative = "two.sided")
+#t.test(mpeak4, mpeak1, paired = TRUE, alternative = "two.sided")
+#t.test(ppeak4, ppeak1, paired = TRUE, alternative = "two.sided")
+#t.test(kpeak4, kpeak1, paired = TRUE, alternative = "two.sided")
 
-#non parametric test
+#non parametric test to see whether the median difference P4-P1 is significantly different from 0
 WM =wilcox.test(mdf.long$Activity ~ mdf.long$Peak, paired = TRUE)
 WP =wilcox.test(pdf.long$Activity ~ pdf.long$Peak, paired = TRUE)
 WK =wilcox.test(kdf.long$Activity ~ kdf.long$Peak, paired = TRUE)
@@ -57,12 +57,45 @@ Zm = qnorm(WM$p.value/2)
 Zp = qnorm(WP$p.value/2)
 Zk = qnorm(WK$p.value/2)
 
+
+##NORMALITY
+library(nortest)
+mpeak1 = org_data.filt$peak1[org_data.filt$layer=="M"]
+mpeak4 = org_data.filt$peak4[org_data.filt$layer=="M"]
+
+
+ppeak1 = org_data.filt$peak1[org_data.filt$layer=="P"]
+ppeak4 = org_data.filt$peak4[org_data.filt$layer=="P"]
+
+
+kpeak1 = org_data.filt$peak1[org_data.filt$layer=="K"]
+kpeak4 = org_data.filt$peak4[org_data.filt$layer=="K"]
+
+   #Pearson's Chi square test (better suited to large samples)
+mnorm=pearson.test(mpeak4-mpeak1)
+pnorm=pearson.test(ppeak4-ppeak1)
+knorm=pearson.test(kpeak4-kpeak1)
+
+    #Anderson Darling test (non parametric, better suited to smaller samples == our case)
+admnorm=ad.test(mpeak4-mpeak1)
+adpnorm=ad.test(ppeak4-ppeak1)
+adknorm=ad.test(kpeak4-kpeak1)
+
+##SKEWNESS
+library(fBasics)
+mskew = skewness(mpeak4-mpeak1)
+pskew = skewness(ppeak4-ppeak1)
+kskew = skewness(kpeak4-kpeak1)
+
+
+
 #compute medians (not essential)
 library(rstatix)
 mdf.long %>%
   group_by(Peak) %>%
   get_summary_stats(Activity, type = "median_iqr")
 
+#Kolgomorov-Smirnov test for normality (but other tests like Anderso- Darling test are specifically adapted for goodness of fit against a normal distribution)
 ks.test(org_data.filt$percentch[org_data.filt$layer=="M"], "pnorm", mean=mean(org_data.filt$percentch[org_data.filt$layer=="M"]), sd=sd(org_data.filt$percentch[org_data.filt$layer=="M"]))
 ks.test(org_data.filt$percentch[org_data.filt$layer=="P"], "pnorm", mean=mean(org_data.filt$percentch[org_data.filt$layer=="P"]), sd=sd(org_data.filt$percentch[org_data.filt$layer=="P"]))
 ks.test(org_data.filt$percentch[org_data.filt$layer=="K"], "pnorm", mean=mean(org_data.filt$percentch[org_data.filt$layer=="K"]), sd=sd(org_data.filt$percentch[org_data.filt$layer=="K"]))

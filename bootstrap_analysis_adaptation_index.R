@@ -46,10 +46,10 @@ pbootstraptrim <- WRS::ydbt(pIdxMono,pIdxBino,tr=0,alpha=0.05,nboot=5000,side=FA
 
 ## make different sorts of plots
 
-#mIdxdiff = mIdxMono - mIdxBino
-Idxdiff = IdxMono - IdxBino
 
-#plot_dat <- data.frame(mIdxdiff)
+
+# population level Histogram
+Idxdiff = IdxMono - IdxBino
 plot_dat <- data.frame(Idxdiff,  "pvalue"= org_data.filt$pvalue[1:36])
 plot_dat$sigdata[plot_dat$pvalue<0.05] <- "Binocular Interaction"
 plot_dat$sigdata[plot_dat$pvalue>0.05] <- "NS"
@@ -78,3 +78,69 @@ labs(
   y = "IdxMono-IdxBino" )
 ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/adaptation_index/plots/adaptation_index_difference.svg")
 ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/adaptation_index/plots/adaptation_index_difference.png")
+
+# M cell histogram
+mIdxdiff = mIdxMono - mIdxBino
+
+plot_dat <- data.frame(mIdxdiff,  "pvalue"= org_data.filt$pvalue[org_data.filt$Cell.Class == "M" & org_data.filt$Condition == "Monocular"])
+plot_dat$sigdata[plot_dat$pvalue<0.05] <- "Binocular Interaction"
+plot_dat$sigdata[plot_dat$pvalue>0.05] <- "NS"
+
+
+ggplot(plot_dat, aes(x=mIdxdiff))+
+  geom_histogram(aes(fill=sigdata), bins=20)+
+  #scale_fill_manual(values=c("#93C5DE","#93C5DE","#B5B5B5"))+
+  #scale_x_discrete(limits=c(1,2,3,4))+
+  #geom_hline(yintercept=qt(0.975,18), linetype="dashed", color = "red")
+  #geom_hline(yintercept=-(qt(0.975,9)/sqrt(10)), linetype="dashed", color = "red")
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 15, face = "bold", hjust=0.5),
+    axis.title.x = element_text(color = "black", size = 13),
+    axis.title.y = element_text(color = "black", size = 13),
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.text    = element_text(size  = 9),
+    axis.line = element_line(colour = "black", size = 1) 
+  )+
+  labs(
+    title = "M cells adaptation index difference \n Monocular - Binocular",
+    x = "Count",
+    y = "IdxMono-IdxBino" )
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/adaptation_index/plots/Mcells_adaptation_index_difference.svg")
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/adaptation_index/plots/Mcells_adaptation_index_difference.png")
+
+# P cells histogram
+pIdxdiff = pIdxMono - pIdxBino
+
+plot_dat <- data.frame(pIdxdiff,  "pvalue"= org_data.filt$pvalue[org_data.filt$Cell.Class == "P" & org_data.filt$Condition == "Monocular"])
+plot_dat$sigdata[plot_dat$pvalue<0.05] <- "Binocular Interaction"
+plot_dat$sigdata[plot_dat$pvalue>0.05] <- "NS"
+
+
+ggplot(plot_dat, aes(x=pIdxdiff))+
+  geom_histogram(aes(fill=sigdata), bins=20)+
+  #scale_fill_manual(values=c("#93C5DE","#93C5DE","#B5B5B5"))+
+  #scale_x_discrete(limits=c(1,2,3,4))+
+  #geom_hline(yintercept=qt(0.975,18), linetype="dashed", color = "red")
+  #geom_hline(yintercept=-(qt(0.975,9)/sqrt(10)), linetype="dashed", color = "red")
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 15, face = "bold", hjust=0.5),
+    axis.title.x = element_text(color = "black", size = 13),
+    axis.title.y = element_text(color = "black", size = 13),
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.text    = element_text(size  = 9),
+    axis.line = element_line(colour = "black", size = 1) 
+  )+
+  labs(
+    title = "P cells adaptation index difference \n Monocular - Binocular",
+    x = "Count",
+    y = "IdxMono-IdxBino" )
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/adaptation_index/plots/Pcells_adaptation_index_difference.svg")
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/adaptation_index/plots/Pcells_adaptation_index_difference.png")
+
+

@@ -1,7 +1,8 @@
 library(R.matlab)
 
 org_data = read.csv("C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/adaptation_index/data/AdaptationIndexData.csv", header = TRUE,sep = ',', na.strings="")
-
+pvalues = read.csv("C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/all_units/mixedmodel_pvals_anova_linearTrend.csv", header = T, sep = ',', na.strings ="")
+org_data$pvalue = c(pvalues$Interaction, pvalues$Interaction)
 library(tidyr)
 #no_na_data <- drop_na(org_data)
 row.has.na <- apply(org_data, 1, function(x){any(is.na(x))})
@@ -45,5 +46,29 @@ pbootstraptrim <- WRS::ydbt(pIdxMono,pIdxBino,tr=0,alpha=0.05,nboot=5000,side=FA
 
 ## make different sorts of plots
 
-mIdxdiff = mIdxMono - pIdxBino
+#mIdxdiff = mIdxMono - mIdxBino
+Idxdiff = IdxMono - IdxBino
 
+#plot_dat <- data.frame(mIdxdiff)
+plot_dat <- data.frame(Idxdiff,  "pvalue"= org_data.filt$pvalue[1:36])
+plot_dat$sigdata[plot_dat$pvalue<0.05] <- "Binocular Interaction"
+plot_dat$sigdata[plot_dat$pvalue>0.05] <- "NS"
+
+
+ggplot(plot_dat, aes(y=Idxdiff))+
+  geom_histogram(aes(fill=sigdata), bins=20)+
+  #scale_fill_manual(values=c("#93C5DE","#93C5DE","#B5B5B5"))+
+  #scale_x_discrete(limits=c(1,2,3,4))+
+  #geom_hline(yintercept=qt(0.975,18), linetype="dashed", color = "red")
+  #geom_hline(yintercept=-(qt(0.975,9)/sqrt(10)), linetype="dashed", color = "red")
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 15, face = "bold", hjust=0.5),
+    axis.title.x = element_text(color = "black", size = 13),
+    axis.title.y = element_text(color = "black", size = 13),
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.text    = element_text(size  = 9),
+    axis.line = element_line(colour = "black", size = 1) 
+  )

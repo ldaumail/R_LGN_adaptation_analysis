@@ -55,7 +55,7 @@ plot_dat$sigdata[plot_dat$pvalue<0.05] <- "Binocular Interaction"
 plot_dat$sigdata[plot_dat$pvalue>0.05] <- "NS"
 
 
-ggplot(plot_dat, aes(y=Idxdiff))+
+ggplot(plot_dat, aes(x=Idxdiff))+
   geom_histogram(aes(fill=sigdata), bins=20)+
   #scale_fill_manual(values=c("#93C5DE","#93C5DE","#B5B5B5"))+
   #scale_x_discrete(limits=c(1,2,3,4))+
@@ -71,4 +71,10 @@ ggplot(plot_dat, aes(y=Idxdiff))+
     panel.grid.minor = element_blank(),
     axis.text    = element_text(size  = 9),
     axis.line = element_line(colour = "black", size = 1) 
-  )
+  )+
+labs(
+  title = "Population adaptation index difference \n Monocular - Binocular",
+  x = "Count",
+  y = "IdxMono-IdxBino" )
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/adaptation_index/plots/adaptation_index_difference.svg")
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/adaptation_index/plots/adaptation_index_difference.png")

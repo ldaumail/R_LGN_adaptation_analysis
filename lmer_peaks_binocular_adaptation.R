@@ -15,7 +15,8 @@ colMax <- function(X) apply(X, 2, max, na.rm = T)
 #file names of all 71 units in the folder
 #ignore for the data analysis
 path = 'C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/all_units/'
-file = file.path(path,'all_orig_bs_zscore_trials.mat' )
+file = file.path(path,'all_orig_bs_zscore_trials_05022021_mono_bino.mat' )
+#file = file.path(path,'all_orig_bs_zscore_trials.mat' )
 TRresps = readMat(file) #peak values obtained with BinocularAdaptationTrialSelection.m
 
 origPks = vector(mode = "list", length = length(TRresps$peak.aligned.trials))
@@ -25,11 +26,13 @@ cellclass = array(0, length(TRresps$peak.aligned.trials))
 for(i in 1:length(TRresps$peak.aligned.trials)){
   for(b in 1:2){
     for(p in 1:4){
-     tempList[[p]] = colMax(TRresps$peak.aligned.trials[[i]][[1]][[b]][[p]])
-     origPks[[i]][[b]] = tempList
-     if(length(TRresps$peak.aligned.trials[[i]][[4]])>0){
-     cellclass[i] = TRresps$peak.aligned.trials[[i]][[4]]
-     }
+      if (length(TRresps$peak.aligned.trials[[i]][[1]]) == 2){
+       tempList[[p]] = colMax(TRresps$peak.aligned.trials[[i]][[1]][[b]][[p]])
+       origPks[[i]][[b]] = tempList
+       if(length(TRresps$peak.aligned.trials[[i]][[4]])>0){
+       cellclass[i] = TRresps$peak.aligned.trials[[i]][[4]]
+       }
+      }
     }
   }
 }
@@ -54,66 +57,70 @@ tvals <- 0
 df.KR <- 0
 p.KR <- 0
 
+cnt <- 0
 #logical_filenames = logical(length(folderfilenames))
 
 for(i in 1:length(origPks)){
-  for(b in 1:2){
-  #filename <- filenames[i]
-  #path <- system.file("C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/su_peaks_03032020_corrected/orig_peak_values", package = "R.matlab")
-  #pathname <- file.path("C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/su_peaks_03032020_corrected/orig_peak_values",folderfilenames[i])
-  bumps_data <- origPks[[i]][[b]]
-  #if(length(bumps_data)>0) { 
-  #  if(length(filenames$layer[i])>0){ #ignore for the data analysis
-  #    logical_filenames[i] <- TRUE #ignore for the data analysis
-  #  } #ignore for the data analysis
-    
-    peak1<- t(bumps_data[[1]])
-    peak2<- t(bumps_data[[2]])
-    peak3<- t(bumps_data[[3]])
-    peak4<- t(bumps_data[[4]])
-    col_bumps_data <- t(cbind(peak1,peak2,peak3,peak4))
-    
-    #create labels
-    labels <- c("P1","P2","P3", "P4")
-    bumpnb <- matrix(rep(labels, each =length(bumps_data[[1]])), ncol=4)
-    t_label <- t(cbind(t(bumpnb[,1]),t(bumpnb[,2]),t(bumpnb[,3]),t(bumpnb[,4])))
-    
-    #create trial index
-    trial_idx = t(t(rep(1:length(bumps_data[[1]]), times =4)))
-    
-    #create table
-    org_data = data.frame(trial_idx, t_label, col_bumps_data)
-    
-    ##fit linear model
-    linearPeaks = lmer(col_bumps_data ~ t_label +(1|trial_idx), org_data)
-    linsummary <- summary(linearPeaks)
-    
-    coefs <- data.frame(coef(summary(linearPeaks)))
-    df.KR <- get_ddf_Lb(linearPeaks, fixef(linearPeaks))
-    p.KR <- 2 * (1 - pt(abs(coefs$t.value), df.KR))
-    pvals[i,1:4,b] <- p.KR
-    
-    #for(j in 1:4){ 
-    #if you wanna consider the distribution normal (not recommended if small sample)
-    #Vcov <- vcov(linearPeaks, useScale = FALSE) 
-    #betas <- fixef(linearPeaks) 
-    #se <- sqrt(diag(Vcov)) 
-    #zval <- betas / se 
-    #pvals[i,] <- 2 * pnorm(abs(zval), lower.tail = FALSE)
-    #pvals[i,] <- 2 * (1 - pnorm(abs(coefs$t.value)))
+  if(length(origPks[[i]]) == 2){
+    cnt = cnt +1
+    for(b in 1:2){
+    #filename <- filenames[i]
+    #path <- system.file("C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/su_peaks_03032020_corrected/orig_peak_values", package = "R.matlab")
+    #pathname <- file.path("C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/su_peaks_03032020_corrected/orig_peak_values",folderfilenames[i])
+    bumps_data <- origPks[[i]][[b]]
+    #if(length(bumps_data)>0) { 
+    #  if(length(filenames$layer[i])>0){ #ignore for the data analysis
+    #    logical_filenames[i] <- TRUE #ignore for the data analysis
+    #  } #ignore for the data analysis
+      
+      peak1<- t(bumps_data[[1]])
+      peak2<- t(bumps_data[[2]])
+      peak3<- t(bumps_data[[3]])
+      peak4<- t(bumps_data[[4]])
+      col_bumps_data <- t(cbind(peak1,peak2,peak3,peak4))
+      
+      #create labels
+      labels <- c("P1","P2","P3", "P4")
+      bumpnb <- matrix(rep(labels, each =length(bumps_data[[1]])), ncol=4)
+      t_label <- t(cbind(t(bumpnb[,1]),t(bumpnb[,2]),t(bumpnb[,3]),t(bumpnb[,4])))
+      
+      #create trial index
+      trial_idx = t(t(rep(1:length(bumps_data[[1]]), times =4)))
+      
+      #create table
+      org_data = data.frame(trial_idx, t_label, col_bumps_data)
+      
+      ##fit linear model
+      linearPeaks = lmer(col_bumps_data ~ t_label +(1|trial_idx), org_data)
+      linsummary <- summary(linearPeaks)
+      
+      coefs <- data.frame(coef(summary(linearPeaks)))
+      df.KR <- get_ddf_Lb(linearPeaks, fixef(linearPeaks))
+      p.KR <- 2 * (1 - pt(abs(coefs$t.value), df.KR))
+      pvals[i,1:4,b] <- p.KR
+      
+      #for(j in 1:4){ 
+      #if you wanna consider the distribution normal (not recommended if small sample)
+      #Vcov <- vcov(linearPeaks, useScale = FALSE) 
+      #betas <- fixef(linearPeaks) 
+      #se <- sqrt(diag(Vcov)) 
+      #zval <- betas / se 
+      #pvals[i,] <- 2 * pnorm(abs(zval), lower.tail = FALSE)
+      #pvals[i,] <- 2 * (1 - pnorm(abs(coefs$t.value)))
+      #}
+      
+      ##save output in a mat file
+      #filename2 <- paste("C:/Users/maier/Documents/LGN_data/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/lmer_results_peaks",filename, ".mat", sep = "")
+      #writeMat(filename2, table = linsummary)
+      
+      print(p.KR) 
+      #print(filename)
+      #print(linsummary)
+    #} else {
+    #  pvals[i,1:4,1] <- rep(NaN, times = 4)
+    #  print('File is empty')
     #}
-    
-    ##save output in a mat file
-    #filename2 <- paste("C:/Users/maier/Documents/LGN_data/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/lmer_results_peaks",filename, ".mat", sep = "")
-    #writeMat(filename2, table = linsummary)
-    
-    print(p.KR) 
-    #print(filename)
-    #print(linsummary)
-  #} else {
-  #  pvals[i,1:4,1] <- rep(NaN, times = 4)
-  #  print('File is empty')
-  #}
+    }
   }
 }
 #print(tvals)
@@ -166,6 +173,7 @@ for(b in 1:2){ # condition
     if( cell == '0'){
       c <- 4
     }
+    if(is.null(origPks[[i]]) == F){
     #compute mean pk1
     meanpk1 = mean(origPks[[i]][[b]][[1]])
     #compute mean pk4
@@ -173,17 +181,17 @@ for(b in 1:2){ # condition
     #get pvalue
     
     
-    if( meanpk1>meanpk4 && pvals[i,4,b] < 0.09){
+    if( meanpk1>meanpk4 && pvals[i,4,b] < 0.05){
       cntsupr[c,b] = cntsupr[c,b]+1
     }
-    if( meanpk1<meanpk4 && pvals[i,4,b] < 0.09){
+    if( meanpk1<meanpk4 && pvals[i,4,b] < 0.05){
       cntfac[c,b] = cntfac[c,b]+1
     }
-    if( pvals[i,4,b]> 0.09){
+    if( pvals[i,4,b]> 0.05){
       cntn[c,b] = cntn[c,b]+1
     }
     
-      
+    }
     
   }
 }

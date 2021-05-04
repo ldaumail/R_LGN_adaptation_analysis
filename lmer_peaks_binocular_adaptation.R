@@ -133,28 +133,14 @@ print(pvals)
 
 #save pvalues as a .csv file
 
-filename4 <- paste(path,"all_pvalues_mono_bino", ".csv", sep = "")
+filename4 <- paste(path,"all_pvalues_mono_bino_05022021", ".csv", sep = "")
 write.csv(pvals, file = filename4)
 
 
 
 ## Count number of adapting units for each cell class
 
-#create data frame with 0 rows and 3 columns
-results_df <- data.frame(matrix(ncol = 5, nrow = 8))
 
-#provide column names
-colnames(results_df) <- c('Cell Class', 'Condition', 'Adapt Count', 'Facilit Count', 'NS Count')
-
-
-#create labels
-cell_labels <- c("M","P","K", "Unknown")
-class_col <- matrix(rep(cell_labels, times =2), ncol=1)
-condition <- c("Monocular", "Binocular")
-cond_col <- matrix(rep(condition, each =4), ncol=1)
-
-results_df$`Cell Class`=class_col
-results_df$Condition =cond_col
 cntsupr = array(0,c(4,2))
 cntfac = array(0,c(4,2))
 cntn = array(0,c(4,2))
@@ -197,45 +183,47 @@ for(b in 1:2){ # condition
 }
 
 
+#create data frame with 0 rows and 3 columns
+results_df <- data.frame(matrix(ncol = 5, nrow = 8))
 
+#provide column names
+colnames(results_df) <- c('Cell Class', 'Condition', 'Adapt Count', 'Facilit Count', 'NS Count')
 
+#create labels
+cell_labels <- c("M","P","K", "Unknown")
+class_col <- matrix(rep(cell_labels, times =2), ncol=1)
+condition <- c("Monocular", "Binocular")
+cond_col <- matrix(rep(condition, each =4), ncol=1)
 
+results_df$`Cell Class`=class_col
+results_df$Condition =cond_col
+results_df$`Adapt Count`=c(cntsupr[,1], cntsupr[,2])
+results_df$`Facilit Count`=c(cntfac[,1], cntfac[,2])
+results_df$`NS Count`=c(cntn[,1], cntn[,2])
 
+print(results_df)
 
+#Look at units that are significantly modulated between mono and binocular conditions
+#Test for significant modulation with wilkoxon ranksum test (= independant samples)
 
+Wpvals <- array(0, c(length(origPks)))
+for(i in 1:length(origPks)){
+  if(length(origPks[[i]]) == 2){
+    peaks1_mono <- origPks[[i]][[b]][[1]]
+    peaks1_bino <- origPks[[i]][[b]][[2]]
+    W= wilcox.test(peaks1_mono,peaks1_bino)
+    Wpvals[i]<- W$p.value
+  } else {
+    Wpvals[i] <- NA
+    
+  }
+}
+    
+#if Wpvals is <0.05 && (pvals[i,4,1]<0.05 && pvals[i,4,2]<0.05)
+cnt = cnt+1
+#if Wpvals is <0.05 && ((pvals[i,4,1]<0.05 && pvals[i,4,2]>0.05) || (pvals[i,4,1]>0.05 && pvals[i,4,2]<0.05))
+invcnt = invcnt+1
+#if Wpvals is <0.05 && (pvals[i,4,1]<0.05 || pvals[i,4,2]>0.05) 
+intcnt = intcnt +1
 
-
-
-
-
-#Get filenames of non empty units (e.g. the remaining processed data== clean data)
-selectedfilenames <- folderfilenames[logical_filenames] #this line doesn't work as the order of the files in the folder 
-#(190205..uclust6 = is 61st in the folder, and 190205...uclust61= is 62nd in the folder) are different from the order
-#in the original list from the file containing the whole dataset (filenames_layer.csv lists the names in this order with 190205...uclust61 = 61st
-#and 190205...uclust6= 62nd). 
-#Therefore the logical_filenames vector picks the filenames in the order of the original dataset, not in the folder filenames order
-#ending up picking the wrong names. A fix should be done to adjust this error, lets see when I get some time. The order is right for the analysis 
-#of the data.
-#As a conclusion: a difference should be noted in the way Sys.glob lists the files (order of the files in alphabetical order : right here, 
-#and is the one determining the order of the analysis,
-#and allows to give the right pvalue order), in comparison with list.files ( order of files in the folder : wrong here, but not impacting 
-#the order of the pvalues results, only used
-#to try to select the filenames, but didn't work out in this situation where the order of the filename maters)
-#As a lesson to take from this: the use of logicals should be done with certainty that the data elements are picked in the right order (either alphabetical or known order such as in the folder)
-selectedfilenames<- gsub(".mat","",selectedfilenames) #ignore
-
-cellclassfn <- gsub("gmat","", filenames.filt$filename)#ignore
-
-#get filenames of cell class labelled units
-
-finalfilename <- list() #ignore
-for( i in 1:length(selectedfilenames)){ #ignore
-  for(j in 1:length(filenames.filt$filename)) #ignore
-    if(selectedfilenames[i]==cellclassfn[j]){ #ignore
-      finalfilename[i] <- selectedfilenames[i] #ignore
-    } #ignore
-} #ignore
-finalfilename <-finalfilename[lengths(finalfilename) > 0] #ignore
-filename5 <- paste("C:/Users/daumail/Documents/LGN_data/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/su_peaks_03032020_corrected/orig_peak_values/all_units/selected_units_filenames", ".csv", sep = "") #ignore
-write.csv(finalfilename, file = filename5) #ignore
 

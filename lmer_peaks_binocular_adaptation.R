@@ -218,12 +218,149 @@ for(i in 1:length(origPks)){
     
   }
 }
-    
-#if Wpvals is <0.05 && (pvals[i,4,1]<0.05 && pvals[i,4,2]<0.05)
-cnt = cnt+1
-#if Wpvals is <0.05 && ((pvals[i,4,1]<0.05 && pvals[i,4,2]>0.05) || (pvals[i,4,1]>0.05 && pvals[i,4,2]<0.05))
-invcnt = invcnt+1
-#if Wpvals is <0.05 && (pvals[i,4,1]<0.05 || pvals[i,4,2]>0.05) 
-intcnt = intcnt +1
+ 
+##Create summary table with all binocular modulation pvalues (Wpvals) together with adaptation pvalues and mean of peak values
+
+sumTable <- data.frame(matrix(ncol = 8,nrow = 2*length(origPks)))
+colnames(sumTable) <- c('Cell Class', 'Condition', 'Pk1Pk4pvalue', 'Wpvalue', 'Pk1', 'Pk2', 'Pk3', 'Pk4')
+sumTable$`Cell Class`= c(cellclass,cellclass)
+condition <- c("Monocular", "Binocular")
+sumTable$`Condition`= matrix(rep(condition, each =length(origPks)), ncol=1)
+sumTable$Pk1Pk4pvalue= c(pvals[,4,1],pvals[,4,2])
+sumTable$Wpvalue=c(Wpvals,Wpvals) #useless to fill twice but just to fill up the table
+
+#fill up mean peak values column
+for(i in 1:length(origPks)){
+  for(b in 1:2){
+    if(is.null(origPks[[i]][[b]]) == FALSE){
+      meanPks = colMeans(matrix(unlist(origPks[[i]][[b]]), ncol = 4, byrow = FALSE))
+      if(b == 1){
+        sumTable$Pk1[i] = meanPks[1]
+        sumTable$Pk2[i] = meanPks[2]
+        sumTable$Pk3[i] = meanPks[3]
+        sumTable$Pk4[i] = meanPks[4]
+      } else if (b == 2){
+        sumTable$Pk1[length(origPks)+i] = meanPks[1]
+        sumTable$Pk2[length(origPks)+i] = meanPks[2]
+        sumTable$Pk3[length(origPks)+i] = meanPks[3]
+        sumTable$Pk4[length(origPks)+i] = meanPks[4]
+      }
+    }
+  }
+}
+
+filename5 <- paste(path,"summary_table_pvalues__meanpks_mono_bino_05022021", ".csv", sep = "")
+write.csv(sumTable, file = filename5)
 
 
+#Plot meanPks of units with significant binocular modulation vs peaks that don't (all units showing adaptation).
+#All cells
+sumTable[which(sumTable==0)] = NA
+row.has.na <- apply(sumTable, 1, function(x){any(is.na(x))})
+sumTable.filt <- sumTable[!row.has.na,] #remove rows with NA
+row_sub = apply(sumTable.filt, 1, function(row) all(row !=0 ))
+sumTable.filt <- sumTable.filt[row_sub,] #remove rows with 0 (no cell class label)
+
+
+library("ggpubr")
+library(ggplot2)
+library(reshape2)
+library(gridGraphics)
+library(cowplot)
+
+#modumPks = sumTable.filt[sumTable.filt$Pk1Pk4pvalue <= 0.05,]
+#nmodumPks = sumTable.filt[sumTable.filt$Pk1Pk4pvalue <= 0.05,]
+plot_dat <- melt(sumTable.filt, id.var=c('Condition','Cell Class','Pk1Pk4pvalue','Wpvalue'), variable.name = 'Peak')
+
+#count number of units that are included in plot
+count = paste('Units Count:', length(plot_dat$Peak[plot_dat$Wpvalue<=0.05 & plot_dat$Condition == 'Monocular' & plot_dat$Peak == 'Pk1']))
+
+plot
+# plot
+ggplot(plot_dat[plot_dat$Wpvalue<=0.05,]) + 
+  
+  # box plots and jitter points, with modified x value
+  geom_violin(aes(x=Peak, y=value,fill=Condition), width=0.6, trim=F, color = NA)+
+  geom_boxplot(aes(x=Peak, y=value,fill=Condition, middle = mean(value)),width=0.6) +
+  #geom_boxplot(aes(x=Peak, y=value,fill=Condition,middle = median(value)),width=0.6) +
+  #geom_text(data = means, aes(label = round(x, 1), y = x + 1), size = 3) + #adds average labels
+  #geom_text(data = medians, aes(label = round(x, 1), y = x - 0.5), size = 3) + #adds median labels
+  
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 15, face = "bold", hjust=0.5),
+    axis.title.x = element_text(color = "black", size = 13),
+    axis.title.y = element_text(color = "black", size = 13),
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.text    = element_text(size  = 9),
+    axis.line = element_line(colour = "black", size = 1) 
+  )+
+  
+  labs(
+    title = paste("Comparison of modulated units responses \n in monocular and binocular conditions \n",count),
+    x = "Peak",
+    y = "Spike rate (spikes/sec)" )
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_mean.svg")
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_mean.png")
+
+#grid.newpage()
+#grid.draw(as_grob(plot))+
+#ggdraw(count) + draw_label("bottom left at (0, 0)", x = 0, y = 0, hjust = 0, vjust = 0)
+
+
+#Same plot with significantly adapting units
+#count number of units that are included in plot
+count = paste('Units Count:', length(plot_dat$Peak[plot_dat$Wpvalue<=0.05 & plot_dat$Condition == 'Monocular' & plot_dat$Peak == 'Pk1' & plot_dat$Pk1Pk4pvalue<=0.05 ]))
+
+plot
+# plot
+ggplot(plot_dat[plot_dat$Wpvalue<=0.05 & plot_dat$Pk1Pk4pvalue<=0.05,]) + 
+  
+  # box plots and jitter points, with modified x value
+  geom_violin(aes(x=Peak, y=value,fill=Condition), width=0.6, trim=F, color = NA)+
+  geom_boxplot(aes(x=Peak, y=value,fill=Condition),width=0.6) +
+  #geom_boxplot(aes(x=Peak, y=value,fill=Condition),width=0.6) +
+  #geom_text(data = means, aes(label = round(x, 1), y = x + 1), size = 3) + #adds average labels
+  #geom_text(data = medians, aes(label = round(x, 1), y = x - 0.5), size = 3) + #adds median labels
+  
+  theme_bw() +
+  theme(
+    plot.title   = element_text(color = "black", size = 15, face = "bold", hjust=0.5),
+    axis.title.x = element_text(color = "black", size = 13),
+    axis.title.y = element_text(color = "black", size = 13),
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank(),
+    axis.text    = element_text(size  = 9),
+    axis.line = element_line(colour = "black", size = 1) 
+  )+
+  
+  labs(
+    title = paste("Comparison of modulated adapting units \n responses in monocular and binocular \n conditions \n",count),
+    x = "Peak",
+    y = "Spike rate (spikes/sec)" )
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_adapt_median.svg")
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_adapt_median.png")
+
+#Make same plot with significantly suppressed units only ==> need to redo a dataframe
+
+
+cnt = 0
+invcnt = 0
+intcnt = 0
+
+for(i in 1:length(origPks)){
+  if(is.na(Wpvals[i])==F){
+    if(Wpvals[i] <0.05 && (pvals[i,4,1]<0.05 && pvals[i,4,2]<0.05)){
+      cnt = cnt+1
+    }
+    if(Wpvals[i] <0.05 && ((pvals[i,4,1]<0.05 && pvals[i,4,2]>0.05) || (pvals[i,4,1]>0.05 && pvals[i,4,2]<0.05))){
+      invcnt = invcnt+1
+    }
+    if(Wpvals[i] <0.05 && (pvals[i,4,1]<0.05 || pvals[i,4,2]>0.05)){
+      intcnt = intcnt +1
+    }
+  }
+}

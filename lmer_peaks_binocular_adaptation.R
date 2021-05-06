@@ -8,6 +8,7 @@ source('C:/Users/daumail/OneDrive - Vanderbilt/Documents/R/useful_functions/rowM
 
 #define function colMax
 colMax <- function(X) apply(X, 2, max, na.rm = T)
+rowMin <- function(X) apply(X, 1, min, na.rm = T)
 
 ##
 ## create a for loop to treat all the data at once
@@ -223,22 +224,28 @@ for(i in 1:length(origPks)){
 
 sumTable <- data.frame(matrix(ncol = 10,nrow = 2*length(origPks)))
 colnames(sumTable) <- c('Cell Class', 'Condition', 'Pk1Pk4pvalue', 'Wpvalue', 'Pk1', 'Pk2', 'Pk3', 'Pk4', 'Pk1Pk4supress','binosup')
-sumTable$`Cell Class`= c(cellclass,cellclass)
+sumTable$`Cell Class`<- c(cellclass,cellclass)
 condition <- c("Monocular", "Binocular")
-sumTable$`Condition`= matrix(rep(condition, each =length(origPks)), ncol=1)
-sumTable$Pk1Pk4pvalue= c(pvals[,4,1],pvals[,4,2])
-sumTable$Wpvalue=c(Wpvals,Wpvals) #useless to fill twice but just to fill up the table
+sumTable$`Condition`<- matrix(rep(condition, each =length(origPks)), ncol=1)
+sumTable$Pk1Pk4pvalue<- c(pvals[,4,1],pvals[,4,2])
+sumTable$Wpvalue<- c(Wpvals,Wpvals) #useless to fill twice but just to fill up the table
 
-#### THIS code segement is to replace oriPks values by normalized (z-score) peak values for plotting comparisons
-origPks = vector(mode = "list", length = length(TRresps$peak.aligned.trials))
-tempList = list()
+#### THIS code segement is to replace oriPks values by normalized (z-score or simple normalizing process)  peak values for plotting comparisons
+origPks <- vector(mode = "list", length = length(TRresps$peak.aligned.trials))
+tempList <- list()
 for(i in 1:length(TRresps$peak.aligned.trials)){
-  for(b in 1:2){
-    for(p in 1:4){
-      if (length(TRresps$peak.aligned.trials[[i]][[3]]) == 2){
-        tempList[[p]] = colMax(TRresps$peak.aligned.trials[[i]][[3]][[b]][[p]])
-        origPks[[i]][[b]] = tempList
-      }
+  if (length(TRresps$peak.aligned.trials[[i]][[1]]) == 2){
+    for(b in 1:2){
+      for(p in 1:4){
+       
+          tempList[[p]] <- colMax(TRresps$peak.aligned.trials[[i]][[3]][[b]][[p]])
+          
+        }
+    
+      matTempList <- matrix(unlist(tempList), ncol = 4)
+      normTempMat <- (matTempList - rowMin(matTempList))/(rowMaxs(matTempList)-rowMin(matTempList))
+      normTempList <- split(normTempMat, rep(1:ncol(normTempMat), each = nrow(normTempMat)))
+      origPks[[i]][[b]] <- normTempList
     }
   }
 }
@@ -325,9 +332,10 @@ ggplot(mod_df,aes(y = value, x = Peak,fill=Condition)) +
   labs(
     title = paste("Comparison of modulated units responses \n in monocular and binocular conditions \n",count),
     x = "Peak",
-    y = "Spike rate (spikes/sec)" )
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_mean_zscore.svg")
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_mean_zscore.png")
+    #y = "Spike rate (spikes/sec)" )
+    y = "Spike rate (normalized)" )
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_mean_normalized.svg")
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_mean_normalized.png")
 
 #grid.newpage()
 #grid.draw(as_grob(plot))+
@@ -370,9 +378,10 @@ ggplot(mod_adapt_df,aes(y = value, x = Peak,fill=Condition)) +
   labs(
     title = paste("Comparison of modulated adapting units \n responses in monocular and binocular \n conditions \n",count),
     x = "Peak",
-    y = "Spike rate (spikes/sec)" )
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_adapt_mean_zscore.svg")
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_adapt_mean_zscore.png")
+    #y = "Spike rate (spikes/sec)" )
+    y = "Spike rate (normalized)" )
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_adapt_mean_normalized.svg")
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_adapt_mean_normalized.png")
 
 #################################                               3                                 ####################################################
 #Make same plot units with significant binocular modulation and SUPPRESSED units in monocular condition only 
@@ -417,9 +426,10 @@ ggplot(mod_adaptSupr_df,aes(y = value, x = Peak,fill=Condition)) +
   labs(
     title = paste("Comparison of bino modulated sig suppressed \n units responses in monocular and binocular \n conditions \n",count),
     x = "Peak",
-    y = "Spike rate (spikes/sec)" )
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_suppressed_mean_zscore.svg")
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_suppressed_mean_zscore.png")
+    #y = "Spike rate (spikes/sec)" )
+    y = "Spike rate (normalized)" )
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_suppressed_mean_normalized.svg")
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_suppressed_mean_normalized.png")
 
 
 
@@ -464,9 +474,10 @@ ggplot(binosupr_adaptSupr_df,aes(y = value, x = Peak,fill=Condition)) +
   labs(
     title = paste("Comparison of binocularly supressed, suppressed \n units responses in monocular and binocular \n conditions \n",count),
     x = "Peak",
-    y = "Spike rate (spikes/sec)" )
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_binosupr_suppressed_mean_zscore.svg")
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_binosupr_suppressed_mean_zscore.png")
+    #y = "Spike rate (spikes/sec)" )
+    y = "Spike rate (normalized)" )
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_binosupr_suppressed_mean_normalized.svg")
+ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_binosupr_suppressed_mean_normalized.png")
 
 
 

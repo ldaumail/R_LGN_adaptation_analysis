@@ -210,8 +210,8 @@ print(results_df)
 Wpvals <- array(0, c(length(origPks)))
 for(i in 1:length(origPks)){
   if(length(origPks[[i]]) == 2){
-    peaks1_mono <- origPks[[i]][[b]][[1]]
-    peaks1_bino <- origPks[[i]][[b]][[2]]
+    peaks1_mono <- origPks[[i]][[1]][[1]]
+    peaks1_bino <- origPks[[i]][[2]][[1]]
     W= wilcox.test(peaks1_mono,peaks1_bino)
     Wpvals[i]<- W$p.value
   } else {
@@ -274,7 +274,7 @@ for(i in 1:length(origPks)){
 sumTable$Pk1Pk4supress = (sumTable$Pk1 - sumTable$Pk4) > 0
 sumTable$binosup = matrix(rep(sumTable$Pk1[sumTable$Condition == 'Monocular'] - sumTable$Pk1[sumTable$Condition == 'Binocular'] > 0, times = 2), ncol=1)
 
-filename5 <- paste(path,"summary_table_pvalues__meanpks_mono_bino_05022021", ".csv", sep = "")
+filename5 <- paste(path,"summary_table_pvalues__meanpks_mono_bino_05202021", ".csv", sep = "")
 write.csv(sumTable, file = filename5)
 
 
@@ -297,6 +297,8 @@ plot_dat <- melt(sumTable.filt, id.var=c('Condition','Cell Class','Pk1Pk4pvalue'
 
 
 #############################################                                  1                                ################################################
+plotpath <- 'C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/'
+
 #Plot units with binocular modulation (any type of modulation)
 #make appropriate dataframe
 mod_df = plot_dat[plot_dat$Wpvalue<0.05,]
@@ -334,8 +336,10 @@ ggplot(mod_df,aes(y = value, x = Peak,fill=Condition)) +
     x = "Peak",
     #y = "Spike rate (spikes/sec)" )
     y = "Spike rate (normalized)" )
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_mean_normalized.svg")
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_mean_normalized.png")
+fileN <-  file.path(plotpath,'comparison_mono_bino_signif_modul_mean_normalized_05202021.svg' )
+ggsave(filename= fileN)
+fileN <-  file.path(plotpath,'comparison_mono_bino_signif_modul_mean_normalized_05202021.png' )
+ggsave(filename= fileN)
 
 #grid.newpage()
 #grid.draw(as_grob(plot))+
@@ -380,8 +384,11 @@ ggplot(mod_adapt_df,aes(y = value, x = Peak,fill=Condition)) +
     x = "Peak",
     #y = "Spike rate (spikes/sec)" )
     y = "Spike rate (normalized)" )
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_adapt_mean_normalized.svg")
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_adapt_mean_normalized.png")
+fileN <-  file.path(plotpath,'comparison_mono_bino_signif_modul_adapt_mean_normalized_05202021.svg' )
+ggsave(filename= fileN)
+fileN <-  file.path(plotpath,'comparison_mono_bino_signif_modul_adapt_mean_normalized_05202021.png' )
+ggsave(filename= fileN)
+
 
 #################################                               3                                 ####################################################
 #Make same plot units with significant binocular modulation and SUPPRESSED units in monocular condition only 
@@ -428,8 +435,12 @@ ggplot(mod_adaptSupr_df,aes(y = value, x = Peak,fill=Condition)) +
     x = "Peak",
     #y = "Spike rate (spikes/sec)" )
     y = "Spike rate (normalized)" )
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_suppressed_mean_normalized.svg")
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_suppressed_mean_normalized.png")
+fileN <-  file.path(plotpath,'comparison_mono_bino_signif_modul_suppressed_mean_normalized_05202021.svg' )
+ggsave(filename= fileN)
+fileN <-  file.path(plotpath,'comparison_mono_bino_signif_modul_suppressed_mean_normalized_05202021.png' )
+ggsave(filename= fileN)
+#ggsave(filename= "comparison_mono_bino_signif_modul_suppressed_mean_normalized.svg")
+#ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_suppressed_mean_normalized.png")
 
 
 
@@ -476,8 +487,10 @@ ggplot(binosupr_adaptSupr_df,aes(y = value, x = Peak,fill=Condition)) +
     x = "Peak",
     #y = "Spike rate (spikes/sec)" )
     y = "Spike rate (normalized)" )
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_binosupr_suppressed_mean_normalized.svg")
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_binosupr_suppressed_mean_normalized.png")
+fileN <-  file.path(plotpath,'comparison_mono_bino_signif_binosupr_suppressed_mean_normalized_05202021.svg' )
+ggsave(filename= fileN)
+fileN <-  file.path(plotpath,'comparison_mono_bino_signif_binosupr_suppressed_mean_normalized_05202021.png' )
+ggsave(filename= fileN)
 
 
 

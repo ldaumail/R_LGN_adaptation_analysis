@@ -15,14 +15,17 @@ rowMin <- function(X) apply(X, 1, min, na.rm = T)
 
 #file names of all 71 units in the folder
 #ignore for the data analysis
-path = 'C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/multi_units/adaptation_analysis/all_channels/'
-file = file.path(path,'all_orig_bs_zscore_trials_05122021_mono_bino.mat' )
+path <- 'C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/multi_units/adaptation_analysis/all_channels/'
+file <- file.path(path,'all_orig_bs_zscore_trials_05122021_mono_bino.mat' )
 
-TRresps = readMat(file) #peak values obtained with BinocularAdaptationTrialSelection.m
+TRresps <- readMat(file) #peak values obtained with BinocularAdaptationTrialSelection.m
+
+classfile <-  file.path(path,'selected_filenames_05132021.csv' )
+classes <- read.csv(classfile)
 
 origPks = vector(mode = "list", length = length(TRresps$peak.aligned.trials))
 tempList = list()
-#cellclass = array(0, length(TRresps$peak.aligned.trials)) #let's ignore the cell class for now
+cellclass = array(0, length(TRresps$peak.aligned.trials)) #let's ignore the cell class for now
 
 for(i in 1:length(TRresps$peak.aligned.trials)){
   for(b in 1:2){
@@ -30,13 +33,15 @@ for(i in 1:length(TRresps$peak.aligned.trials)){
       if (length(TRresps$peak.aligned.trials[[i]][[1]]) == 2){
         tempList[[p]] = colMax(TRresps$peak.aligned.trials[[i]][[1]][[b]][[p]])
         origPks[[i]][[b]] = tempList
-        #if(length(TRresps$peak.aligned.trials[[i]][[4]])>0){  #let's ignore the cell class for now
-          #cellclass[i] = TRresps$peak.aligned.trials[[i]][[4]]
-        #}
+        if(length(TRresps$peak.aligned.trials[[i]][[1]][[1]][[4]])>0){  
+          cellclass[i] <- as.character(classes$Class[[i]])
+        }
       }
     }
   }
 }
+
+
 
 #x <- lapply(1:10, function(i) i)
 
@@ -139,26 +144,35 @@ write.csv(pvals, file = filename4)
 
 
 ## Count number of adapting units for each cell class
+#0 =  cell isn't kept for the analysis
+#1 = K
+#2 = M
+#3 = P
+#NA = no cell class
 
 
-cntsupr = array(0,c(1,2))
-cntfac = array(0,c(1,2))
-cntn = array(0,c(1,2))
+cntsupr = array(0,c(4,2))
+cntfac = array(0,c(4,2))
+cntn = array(0,c(4,2))
 for(b in 1:2){ # condition
   for(i in 1:length(origPks)){ #nunits
-   # cell = cellclass[i]
-  #  if( cell == 'M'){
-   #   c <- 1
-  #  }
-   # if( cell == 'P'){
-  #    c <- 2
-   # }
-  #  if( cell == 'K'){
-   #   c <- 3
-  #  }
-  #  if( cell == '0'){
-  #   c <- 4
-   # }
+    cell = cellclass[i]
+    if (is.null(cell) == F){
+      if( is.na(cell) == F){
+        if( cell == "M"){ #M
+          c <- 1
+        }
+        if( cell == "P"){ #P
+          c <- 2
+        }
+        if( cell == "K"){ #K
+          c <- 3
+        }
+      }
+      if( is.na(cell) == T){
+       c <- 4
+      }
+    
     if(is.null(origPks[[i]]) == F){
       #compute mean pk1
       meanpk1 = mean(origPks[[i]][[b]][[1]])
@@ -167,17 +181,17 @@ for(b in 1:2){ # condition
       #get pvalue
 
       if( meanpk1>meanpk4 && pvals[i,4,b] < 0.05){
-        cntsupr[1,b] = cntsupr[1,b]+1
+        cntsupr[c,b] = cntsupr[c,b]+1
       }
       if( meanpk1<meanpk4 && pvals[i,4,b] < 0.05){
-        cntfac[1,b] = cntfac[1,b]+1
+        cntfac[c,b] = cntfac[c,b]+1
       }
       if( pvals[i,4,b]> 0.05){
-        cntn[1,b] = cntn[1,b]+1
+        cntn[c,b] = cntn[c,b]+1
       }
       
     }
-    
+    }
   }
 }
 
@@ -208,8 +222,8 @@ print(results_df)
 Wpvals <- array(0, c(length(origPks)))
 for(i in 1:length(origPks)){
   if(length(origPks[[i]]) == 2){
-    peaks1_mono <- origPks[[i]][[b]][[1]]
-    peaks1_bino <- origPks[[i]][[b]][[2]]
+    peaks1_mono <- origPks[[i]][[1]][[1]]
+    peaks1_bino <- origPks[[i]][[2]][[1]]
     W= wilcox.test(peaks1_mono,peaks1_bino)
     Wpvals[i]<- W$p.value
   } else {
@@ -272,7 +286,7 @@ for(i in 1:length(origPks)){
 sumTable$Pk1Pk4supress = (sumTable$Pk1 - sumTable$Pk4) > 0
 sumTable$binosup = matrix(rep(sumTable$Pk1[sumTable$Condition == 'Monocular'] - sumTable$Pk1[sumTable$Condition == 'Binocular'] > 0, times = 2), ncol=1)
 
-filename5 <- paste(path,"summary_table_pvalues__meanpks_mono_bino_05022021", ".csv", sep = "")
+filename5 <- paste(path,"summary_table_pvalues__meanpks_mono_bino_05202021", ".csv", sep = "")
 write.csv(sumTable, file = filename5)
 
 
@@ -295,6 +309,8 @@ plot_dat <- melt(sumTable.filt, id.var=c('Condition','Cell Class','Pk1Pk4pvalue'
 
 
 #############################################                                  1                                ################################################
+plotpath <- 'C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/multi_units/adaptation_analysis/plots/'
+
 #Plot units with binocular modulation (any type of modulation)
 #make appropriate dataframe
 mod_df = plot_dat[plot_dat$Wpvalue<0.05,]
@@ -332,8 +348,11 @@ ggplot(mod_df,aes(y = value, x = Peak,fill=Condition)) +
     x = "Peak",
     #y = "Spike rate (spikes/sec)" )
     y = "Spike rate (normalized)" )
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_mean_normalized.svg")
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_mean_normalized.png")
+
+fileN <-  file.path(plotpath,'comparison_mono_bino_signif_modul_mean_normalized.svg' )
+ggsave(filename= fileN)
+fileN <-  file.path(plotpath,'comparison_mono_bino_signif_modul_mean_normalized.png' )
+ggsave(filename= fileN)
 
 #grid.newpage()
 #grid.draw(as_grob(plot))+
@@ -378,8 +397,11 @@ ggplot(mod_adapt_df,aes(y = value, x = Peak,fill=Condition)) +
     x = "Peak",
     #y = "Spike rate (spikes/sec)" )
     y = "Spike rate (normalized)" )
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_adapt_mean_normalized.svg")
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_adapt_mean_normalized.png")
+fileN <-  file.path(plotpath,'comparison_mono_bino_signif_modul_adapt_mean_normalized.svg' )
+ggsave(filename= fileN)
+fileN <-  file.path(plotpath,'comparison_mono_bino_signif_modul_adapt_mean_normalized.png' )
+ggsave(filename= fileN)
+
 
 #################################                               3                                 ####################################################
 #Make same plot units with significant binocular modulation and SUPPRESSED units in monocular condition only 
@@ -426,8 +448,10 @@ ggplot(mod_adaptSupr_df,aes(y = value, x = Peak,fill=Condition)) +
     x = "Peak",
     #y = "Spike rate (spikes/sec)" )
     y = "Spike rate (normalized)" )
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_suppressed_mean_normalized.svg")
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_modul_suppressed_mean_normalized.png")
+fileN <-  file.path(plotpath,'comparison_mono_bino_signif_modul_suppressed_mean_normalized.svg' )
+ggsave(filename= fileN)
+fileN <-  file.path(plotpath,'comparison_mono_bino_signif_modul_suppressed_mean_normalized.png' )
+ggsave(filename= fileN)
 
 
 
@@ -474,8 +498,10 @@ ggplot(binosupr_adaptSupr_df,aes(y = value, x = Peak,fill=Condition)) +
     x = "Peak",
     #y = "Spike rate (spikes/sec)" )
     y = "Spike rate (normalized)" )
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_binosupr_suppressed_mean_normalized.svg")
-ggsave(filename= "C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/binocular_adaptation/plots/comparison_mono_bino_signif_binosupr_suppressed_mean_normalized.png")
+fileN <-  file.path(plotpath,'comparison_mono_bino_signif_binosupr_suppressed_mean_normalized.svg' )
+ggsave(filename= fileN)
+fileN <-  file.path(plotpath,'comparison_mono_bino_signif_binosupr_suppressed_mean_normalized.png' )
+ggsave(filename= fileN)
 
 
 

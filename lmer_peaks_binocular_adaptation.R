@@ -230,7 +230,7 @@ sumTable$`Condition`<- matrix(rep(condition, each =length(origPks)), ncol=1)
 sumTable$Pk1Pk4pvalue<- c(pvals[,4,1],pvals[,4,2])
 sumTable$Wpvalue<- c(Wpvals,Wpvals) #useless to fill twice but just to fill up the table
 
-#### THIS code segement is to replace oriPks values by normalized (z-score or simple normalizing process)  peak values for plotting comparisons
+#### THIS code segment is to replace oriPks values by normalized (z-score or simple normalizing process)  peak values for plotting comparisons
 origPks <- vector(mode = "list", length = length(TRresps$peak.aligned.trials))
 tempList <- list()
 for(i in 1:length(TRresps$peak.aligned.trials)){
@@ -250,13 +250,45 @@ for(i in 1:length(TRresps$peak.aligned.trials)){
   }
 }
 
-#### ENd of  normalized segment
+#### ENd of 1st normalization segment
+### 2nd normalization segment: Normalize data to first peak of monocular condition
+
+origPks <- vector(mode = "list", length = length(TRresps$peak.aligned.trials))
+tempList <- list()
+monoTempList <- list()
+for(i in 1:length(TRresps$peak.aligned.trials)){
+  if (length(TRresps$peak.aligned.trials[[i]][[1]]) == 2){
+    
+    for(b in 1:2){
+      
+      for(p in 1:4){
+        
+        tempList[[p]] <- colMax(TRresps$peak.aligned.trials[[i]][[3]][[b]][[p]])
+        monoTempList[[p]] <-colMax(TRresps$peak.aligned.trials[[i]][[3]][[1]][[p]])
+      }
+      
+      matTempList <- matrix(unlist(tempList), ncol = 4)
+      meanTemp <- colMeans(matTempList)
+      matMonoTempList <- matrix(unlist(monoTempList), ncol = 4)
+      meanMono = colMeans(matMonoTempList)
+      
+      normTempMat <- meanTemp/meanMono[1]
+      #normTempList <- split(normTempMat, rep(1:ncol(normTempMat), each = nrow(normTempMat)))
+      origPks[[i]][[b]] <- normTempMat
+    }
+  }
+}
+
+
+### End of second normalization segment
+
 
 #fill up mean peak values column
 for(i in 1:length(origPks)){
   for(b in 1:2){
     if(is.null(origPks[[i]][[b]]) == FALSE){
-      meanPks = colMeans(matrix(unlist(origPks[[i]][[b]]), ncol = 4, byrow = FALSE))
+    #  meanPks = colMeans(matrix(unlist(origPks[[i]][[b]]), ncol = 4, byrow = FALSE)) #Use this line in case the data wasn't normalized or normalized with the first method
+      meanPks = origPks[[i]][[b]] #Use this line if data is normalized with the second method
       if(b == 1){
         sumTable$Pk1[i] = meanPks[1]
         sumTable$Pk2[i] = meanPks[2]
@@ -274,7 +306,7 @@ for(i in 1:length(origPks)){
 sumTable$Pk1Pk4supress = (sumTable$Pk1 - sumTable$Pk4) > 0
 sumTable$binosup = matrix(rep(sumTable$Pk1[sumTable$Condition == 'Monocular'] - sumTable$Pk1[sumTable$Condition == 'Binocular'] > 0, times = 2), ncol=1)
 
-filename5 <- paste(path,"summary_table_pvalues__meanpks_mono_bino_05202021", ".csv", sep = "")
+filename5 <- paste(path,"summary_table_pvalues_normmono_meanpks_mono_bino", ".csv", sep = "")
 write.csv(sumTable, file = filename5)
 
 
@@ -346,7 +378,7 @@ ggsave(filename= fileN)
 #ggdraw(count) + draw_label("bottom left at (0, 0)", x = 0, y = 0, hjust = 0, vjust = 0)
 
 ##########################################                                        2                                        ######################################
-#Same plot of units with binocular modulation but with significantly adaptating units only
+#Same plot of units with binocular modulation but with significantly adaptating units (in either condition) only
 mod_df = plot_dat[plot_dat$Wpvalue<0.05,]
 mono_adapt <- mod_df$Condition == 'Monocular' & mod_df$Pk1Pk4pvalue <= 0.05 & mod_df$Peak == 'Pk1'
 bino_adapt <- mod_df$Condition == 'Binocular' & mod_df$Pk1Pk4pvalue <= 0.05 & mod_df$Peak == 'Pk1'

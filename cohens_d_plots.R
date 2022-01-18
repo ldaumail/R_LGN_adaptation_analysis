@@ -5,15 +5,15 @@ library("colorspace")
 setwd("~/LGN_data_042021/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/su_peaks_03032020_corrected/orig_peak_values/all_units")
 bumps_data <- readMat("all_data_peaks.mat")
 peaks =bumps_data[["peak.vals"]]
-bfs_data <- readMat("bayesFactors.mat")
-bfs =bfs_data[["bayesfactors"]]
+#bfs_data <- readMat("bayesFactors.mat")
+#bfs =bfs_data[["bayesfactors"]]
 
 #file_names contains both the filenames and the layer
 file_names_data <- read.csv("filenames_layers.csv", header = TRUE,sep = ',', na.strings="")
 
 #pvalues of adaptation of peak1 vs peak4
 setwd("~/LGN_data_042021/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/lmer_results_peaks")
-pvalues_data <- read.csv("lmer_results_orig_03032020_corrected.csv",header = TRUE,sep = ',', na.strings="")
+pvalues_data <- read.csv("lmer_results_orig_03032020_corrected_dunnett.csv",header = TRUE,sep = ',', na.strings="")
 
 effectsize<-  array(NaN, c(length(file_names_data[[1]])))
 peak1<- array(NaN, c(length(file_names_data[[1]])))
@@ -41,7 +41,7 @@ channel_idx = t(t(rep(1:71, times =1)))
 
 #data frame
 
-org_data = data.frame("Unit Index"=channel_idx,"Cohen's D"=effectsize,"P-value"=pvalues_data[,5], "Peak1"=peak1,"Peak4"= peak4, file_names_data)
+org_data = data.frame("Unit Index"=channel_idx,"Cohen's D"=effectsize,"P-value"=pvalues_data[,4], "Peak1"=peak1,"Peak4"= peak4, file_names_data)
 
 
 library(tidyr)
@@ -211,7 +211,7 @@ ggplot(plot_dat, aes(y=value))+
     axis.text    = element_text(size  = 9),
     axis.line = element_line(colour = "black", size = 1) 
   )
-ggsave(filename= "/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/plots/m_cells_cohenD_hist_mean.svg")
+ggsave(filename= "/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/plots/m_cells_cohenD_hist_mean_dunnett.svg")
 
 #P cells
 
@@ -245,7 +245,7 @@ ggplot(plot_dat, aes(y=value))+
     axis.text    = element_text(size  = 9),
     axis.line = element_line(colour = "black", size = 1) 
   )
-ggsave(filename= "/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/plots/p_cells_cohenD_hist_mean.svg")
+ggsave(filename= "/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/plots/p_cells_cohenD_hist_mean_dunnett.svg")
 
 #K cells
 p_idx =org_data.filt$Unit.Index[org_data.filt$layer=="K"]
@@ -278,7 +278,7 @@ ggplot(plot_dat, aes(y=value))+
     axis.text    = element_text(size  = 9),
     axis.line = element_line(colour = "black", size = 1) 
   )
-ggsave(filename= "/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/plots/k_cells_cohenD_hist_mean.svg")
+ggsave(filename= "/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/plots/k_cells_cohenD_hist_mean_dunnett.svg")
 
 ## same plots for Bayes Factor ##############################
 

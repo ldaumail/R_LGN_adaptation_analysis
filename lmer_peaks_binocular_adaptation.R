@@ -2,7 +2,8 @@ library(R.matlab)
 library(lmerTest)
 library(car)
 library(lme4)
-library(pbkrtest)
+#library(pbkrtest)
+library(emmeans)
 source('C:/Users/daumail/OneDrive - Vanderbilt/Documents/R/useful_functions/get_ddf_Lb.R')
 source('C:/Users/daumail/OneDrive - Vanderbilt/Documents/R/useful_functions/rowMaxs.R')
 
@@ -53,7 +54,7 @@ library(tidyr)
 
 
 #data_filename_list <- Sys.glob("C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/su_peaks_03032020_corrected/orig_peak_values/*.mat")
-pvals <- array(0, c(length(origPks),4,2))
+pvals <- array(0, c(length(origPks),3,2))
 tvals <- 0
 df.KR <- 0
 p.KR <- 0
@@ -95,10 +96,17 @@ for(i in 1:length(origPks)){
       linearPeaks = lmer(col_bumps_data ~ t_label +(1|trial_idx), org_data)
       linsummary <- summary(linearPeaks)
       
-      coefs <- data.frame(coef(summary(linearPeaks)))
-      df.KR <- get_ddf_Lb(linearPeaks, fixef(linearPeaks))
-      p.KR <- 2 * (1 - pt(abs(coefs$t.value), df.KR))
-      pvals[i,1:4,b] <- p.KR
+      #Kenward-Rogers approximation
+      #coefs <- data.frame(coef(summary(linearPeaks)))
+      #df.KR <- get_ddf_Lb(linearPeaks, fixef(linearPeaks))
+      #p.KR <- 2 * (1 - pt(abs(coefs$t.value), df.KR))
+      #pvals[i,1:4,b] <- p.KR
+      
+      #Kenward-Rogers approximation + Dunnetts adjustment of pvalues
+      linearPeaks.emm <- emmeans(linearPeaks, specs = trt.vs.ctrl ~ t_label)
+      res <- linearPeaks.emm$contrasts %>%
+        as.data.frame()
+      pvals[i,1:3,b] <- res$p.value
       
       #for(j in 1:4){ 
       #if you wanna consider the distribution normal (not recommended if small sample)
@@ -114,7 +122,7 @@ for(i in 1:length(origPks)){
       #filename2 <- paste("C:/Users/maier/Documents/LGN_data/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/lmer_results_peaks",filename, ".mat", sep = "")
       #writeMat(filename2, table = linsummary)
       
-      print(p.KR) 
+      print(res$p.value) 
       #print(filename)
       #print(linsummary)
     #} else {
@@ -134,7 +142,7 @@ print(pvals)
 
 #save pvalues as a .csv file
 
-filename4 <- paste(path,"all_pvalues_mono_bino_05022021", ".csv", sep = "")
+filename4 <- paste(path,"all_pvalues_mono_bino_05022021_dunnett", ".csv", sep = "")
 write.csv(pvals, file = filename4)
 
 
@@ -168,13 +176,13 @@ for(b in 1:2){ # condition
     #get pvalue
     
     
-    if( meanpk1>meanpk4 && pvals[i,4,b] < 0.05){
+    if( meanpk1>meanpk4 && pvals[i,3,b] < 0.05){
       cntsupr[c,b] = cntsupr[c,b]+1
     }
-    if( meanpk1<meanpk4 && pvals[i,4,b] < 0.05){
+    if( meanpk1<meanpk4 && pvals[i,3,b] < 0.05){
       cntfac[c,b] = cntfac[c,b]+1
     }
-    if( pvals[i,4,b]> 0.05){
+    if( pvals[i,3,b]> 0.05){
       cntn[c,b] = cntn[c,b]+1
     }
     
@@ -227,7 +235,7 @@ colnames(sumTable) <- c('Cell Class', 'Condition', 'Pk1Pk4pvalue', 'Wpvalue', 'P
 sumTable$`Cell Class`<- c(cellclass,cellclass)
 condition <- c("Monocular", "Binocular")
 sumTable$`Condition`<- matrix(rep(condition, each =length(origPks)), ncol=1)
-sumTable$Pk1Pk4pvalue<- c(pvals[,4,1],pvals[,4,2])
+sumTable$Pk1Pk4pvalue<- c(pvals[,3,1],pvals[,3,2])
 sumTable$Wpvalue<- c(Wpvals,Wpvals) #useless to fill twice but just to fill up the table
 
 #### THIS code segment is to replace oriPks values by normalized (z-score or simple normalizing process)  peak values for plotting comparisons
@@ -303,11 +311,14 @@ for(i in 1:length(origPks)){
     }
   }
 }
-sumTable$Pk1Pk4supress = (sumTable$Pk1 - sumTable$Pk4) > 0
-sumTable$binosup = matrix(rep(sumTable$Pk1[sumTable$Condition == 'Monocular'] - sumTable$Pk1[sumTable$Condition == 'Binocular'] > 0, times = 2), ncol=1)
 
-filename5 <- paste(path,"summary_table_pvalues_normmono_meanpks_mono_bino", ".csv", sep = "")
-write.csv(sumTable, file = filename5)
+
+sumTable$Pk1Pk4supress = (as.numeric(sumTable$Pk1) - as.numeric(sumTable$Pk4)) > 0
+sumTable$binosup = matrix(rep(as.numeric(sumTable$Pk1[sumTable$Condition == 'Monocular']) - as.numeric(sumTable$Pk1[sumTable$Condition == 'Binocular']) > 0, times = 2), ncol=1)
+
+df <- apply(sumTable,2,as.character)
+filename5 <- paste(path,"summary_table_pvalues_normmono_meanpks_mono_bino_dunnett", ".csv", sep = "")
+write.csv(df, file = filename5)
 
 
 #Plot meanPks of units with significant binocular modulation vs peaks that don't (all units showing adaptation).

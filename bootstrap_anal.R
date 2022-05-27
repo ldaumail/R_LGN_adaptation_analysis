@@ -1,10 +1,14 @@
 library(R.matlab)
 library("ggpubr")
 library("colorspace")
-bumps_data <- readMat("all_data_peaks.mat")
+
+path = 'C:/Users/daumail/OneDrive - Vanderbilt/Documents/LGN_data_042021/single_units/inverted_power_channels/good_single_units_data_4bumps_more/new_peak_alignment_anal/su_peaks_03032020_corrected/orig_peak_values/all_units'
+file = file.path(path,'all_data_peaks.mat')
+bumps_data <- readMat(file)
 peaks =bumps_data[["peak.vals"]]
 #file_names contains both the filenames and the layer
-file_names_data <- read.csv("filenames_layers.csv", header = TRUE,sep = ',', na.strings="")
+file2 = file.path(path,'filenames_layers.csv')
+file_names_data <- read.csv(file2, header = TRUE,sep = ',', na.strings="")
 
 #pvalues of adaptation of peak1 vs peak4
 pvalues_data <- read.csv("lmer_results_orig_03032020_corrected.csv",header = TRUE,sep = ',', na.strings="")

@@ -326,52 +326,60 @@ pk1pk4pval = pk1pk4pval(~isnan(adapt_idx(1,:)));
 suppsig = pk1pk4pval(pk1pk4pval < 0.05 & index(1,:)' > 0);
 facsig = pk1pk4pval(pk1pk4pval < 0.05 & index(1,:)' < 0);
 
+
 nlines = 7;
 cmaps = struct();
 cmaps(1).map =cbrewer2('OrRd', nlines);
 cmaps(2).map =cbrewer2('Blues', nlines);
 cmaps(3).map =cbrewer2('Greens', nlines);
 
+colors = [cmaps(2).map(7,:); cmaps(1).map(7,:)];
+adapType = [pk1pk4pval < 0.05 & index(1,:)' > 0,pk1pk4pval < 0.05 & index(1,:)' < 0 ];
 %colormap(cmap);
-
 clear g
 f = figure('Position',[100 100 800 1000]);
 set(f,'position',get(f,'position').*[1 1 1.15 1])
-g(1,1)=gramm('x',idx_diff,'y',unitnb);
-g(1,1).stat_bin('nbins',25,'geom','overlaid_bar');
-g(1,1).stat_density();
+for t = 1:size(adapType,2)
+ condition = [repmat({'all'},length(idx_diff),1); repmat({'sig'},length(idx_diff(unitnb(adapType(:,t)))),1)];
+  %jitter
+g(1,2*(t-1)+1) = gramm('x',condition,'y', [idx_diff,idx_diff(adapType(:,t))]', 'color',condition); %[unitnb,1:length(unitnb(adapType(:,t)))]
+g(1,2*(t-1)+1).geom_jitter('width',0.4,'height',0); %Scatter plot
+g(1,2*(t-1)+1).set_color_options('map',[cmaps(3).map(3,:);colors(t,:)]); 
+g(1,2*(t-1)+1).axe_property( 'xlim',[0 4] , 'ylim',[-1 1]); 
+% add confidence interval 95%
+ci_low = [mean(idx_diff) - std(idx_diff)/sqrt(length(idx_diff)); mean(idx_diff(adapType(:,t))) - std(idx_diff(adapType(:,t)))/sqrt(length(idx_diff(adapType(:,t)))) ];
+ci_high = [mean(idx_diff) + std(idx_diff)/sqrt(length(idx_diff)); mean(idx_diff(adapType(:,t))) + std(idx_diff(adapType(:,t)))/sqrt(length(idx_diff(adapType(:,t)))) ];
+g(1,2*(t-1)+1).update('x',[1;2], 'y', [mean(idx_diff); mean(idx_diff(adapType(:,t)))],...
+    'ymin',ci_low,'ymax',ci_high,'color',[1;2]);
+g(1,2*(t-1)+1).geom_point('dodge',0.5);
+g(1,2*(t-1)+1).geom_interval('geom','errorbar','dodge',0.2,'width',0.8);
+g(1,2*(t-1)+1).set_color_options('map',[cmaps(3).map(3,:);colors(t,:)]); 
+g(1,2*(t-1)+1).axe_property('xlim',[0 4]); 
+g(1,2*(t-1)+1).set_point_options('base_size',7);
+
+%bar
+g(1,2*(t-1)+2)=gramm('x',idx_diff,'y',unitnb);
+g(1,2*(t-1)+2).stat_bin('nbins',25,'geom','overlaid_bar');
+g(1,2*(t-1)+2).stat_density();
 %g(1,1).set_color_options('map', [251/255 154/255 153/255;160/255 160/255 160/255]);
-g(1,1).set_color_options('map',cmaps(3).map(3,:)); 
-g(1,1).axe_property('xlim',[-1 1], 'ylim', [0 6]); 
-g(1,1).set_names('x','Adaptation Index Difference','color','Legend','row','','y','Count');
+g(1,2*(t-1)+2).set_color_options('map',cmaps(3).map(3,:)); 
+g(1,2*(t-1)+2).axe_property('xlim',[-1 1], 'ylim', [0 6]); 
+g(1,2*(t-1)+2).set_names('x','Adaptation Index Difference','color','Legend','row','','y','Count');
 
-g(1,1).update('x',idx_diff(pk1pk4pval < 0.05 & index(1,:)' > 0), 'y',unitnb(pk1pk4pval < 0.05 & index(1,:)' > 0))
-g(1,1).stat_bin('nbins',25,'geom','overlaid_bar');
-g(1,1).stat_density();
-g(1,1).set_color_options('map',cmaps(1).map(7,:)); 
-g(1,1).axe_property('xlim',[-1 1], 'ylim', [0 6]); 
+g(1,2*(t-1)+2).update('x',idx_diff(adapType(:,t)), 'y',unitnb(adapType(:,t)))
+g(1,2*(t-1)+2).stat_bin('nbins',25,'geom','overlaid_bar');
+g(1,2*(t-1)+2).stat_density();
+g(1,2*(t-1)+2).set_color_options('map',colors(t,:)); 
+g(1,2*(t-1)+2).axe_property('xlim',[-1 1], 'ylim', [0 6]); 
 
-
-g(1,2)= gramm('x',idx_diff,'y',unitnb);
-g(1,2).stat_bin('nbins',25,'geom','overlaid_bar');
-g(1,2).stat_density();
-%g(1,1).set_color_options('map', [251/255 154/255 153/255;160/255 160/255 160/255]);
-g(1,2).set_color_options('map',cmaps(3).map(3,:)); 
-g(1,2).axe_property('xlim',[-1 1], 'ylim', [0 6]); 
-g(1,2).set_names('x','Adaptation Index Difference','color','Legend','row','','y','Count');
-
-g(1,2).update('x',idx_diff(pk1pk4pval < 0.05 & index(1,:)' < 0), 'y',unitnb(pk1pk4pval < 0.05 & index(1,:)' < 0))
-g(1,2).stat_bin('nbins',25,'geom','overlaid_bar');
-g(1,2).stat_density();
-g(1,2).set_color_options('map',cmaps(2).map(7,:)); 
-g(1,1).axe_property('xlim',[-1 1], 'ylim', [0 6]); 
-
-g.coord_flip();
+end
+g(1,2).coord_flip();
+g(1,4).coord_flip();
 g.set_title({'Adaptation index difference distribution across all cells'});
-
-%g.set_title({'Adaptation index distribution across all cells in the monocular and binocular conditions'});
 g.draw();
-
+plotdir = strcat('C:\Users\daumail\OneDrive - Vanderbilt\Documents\LGN_data_042021\single_units\adaptation_index\plots\hist_sdf_mono_bino_allcells_adaptindex_difference');
+saveas(gcf,strcat(plotdir, '.png'));
+saveas(gcf,strcat(plotdir, '.svg'));
 
 
 %% Mean adaptation index for significantly modulated neurons
